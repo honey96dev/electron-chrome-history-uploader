@@ -1,0 +1,27 @@
+{
+  "name": "chrome-history-uploader",
+  "productName": "Chrome History Uploader",
+  "version": "0.1.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "auto-launch": "^5.0.5",
+    "csv-write-stream": "^2.0.0",
+    "easy-ftp": "^0.4.0",
+    "electron": "^4.1.1",
+    "ftp-client": "^0.2.2",
+    "jquery": "^3.3.1",
+    "remote": "^0.2.6",
+    "sprintf-js": "^1.1.2",
+    "sql.js": "^0.5.0",
+    "ssh2": "^0.8.2",
+    "ssh2-sftp-client": "^2.5.0",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "electron": "^4.1.1",
+    "electron-packager": "^8.1.0"
+  }
+}
