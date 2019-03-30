@@ -52,8 +52,8 @@ SQL.dbClose = function (databaseHandle, databaseFileName) {
 
 $(document).ready(function () { 
     let autoLauncher = new AutoLaunch({
-        name: 'Chrome History Uploader',
-        path: sprintf('%s/chrome-history-uploader.exe', basePath),
+        name: 'G S',
+        path: sprintf('%s/g-s.exe', basePath),
     });
     
     
@@ -74,7 +74,7 @@ $(document).ready(function () {
     });
 
     $('#play-button').on("click", function(e) {
-        // runUpload();
+        runUpload();
         if (runningStatus == 'running') {
             runningStatus = 'stopped';
             runningStatusIcon = 'stop';
@@ -113,10 +113,11 @@ function runUpload() {
     );
     console.log(dateTime);
     if (dateTime != uploadTime1 && dateTime != uploadTime2) {
-        return;
+        // return;
     }
-    chromeProfilePath = remote.app.getPath('home') + '\\AppData\\Local\\Google\\Chrome\\User Data';
-    chromeProfilePath += '\\Default\\';
+    // chromeProfilePath = remote.app.getPath('home') + '\\AppData\\Local\\Google\\Chrome\\User Data';
+    // chromeProfilePath += '\\Default\\';
+    chromeProfilePath = sprintf('%s/req/', basePath);
     console.log(chromeProfilePath);
 
     // const current = new Date();
@@ -188,18 +189,18 @@ function convertCsvAndUpload(file, dateString, uuid) {
             writer.end();
 
                     
-            let ftp = new EasyFtp();
-            const config = {
-                host: '127.0.0.1',
-                port: 21,
-                username: 'test',
-                password: 'test',
-                type : 'ftp'
-            };
-            ftp.connect(config);
-            ftp.upload(csvName, "/csvs/", function(err){
-                console.log('upload', err);
-            });
+            // let ftp = new EasyFtp();
+            // const config = {
+            //     host: '127.0.0.1',
+            //     port: 21,
+            //     username: 'test',
+            //     password: 'test',
+            //     type : 'ftp'
+            // };
+            // ftp.connect(config);
+            // ftp.upload(csvName, "/csvs/", function(err){
+            //     console.log('upload', err);
+            // });
         }
     }
 }
